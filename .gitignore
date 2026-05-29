@@ -1,0 +1,72 @@
+# ========================================
+# ROS 2 Workspace Directories
+# ========================================
+build/
+install/
+log/
+
+# ========================================
+# C/C++ Build Artifacts
+# ========================================
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# ========================================
+# CMake Artifacts
+# ========================================
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# ========================================
+# Python Artifacts
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ========================================
+# IDEs and Editors
+# ========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.ccls-cache/
+
+# ========================================
+# OS Generated Files
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

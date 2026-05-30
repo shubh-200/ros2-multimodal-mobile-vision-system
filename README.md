@@ -2,10 +2,8 @@
 
 **Production-grade autonomous mobile robot simulation with real-time RGB-D sensor fusion, AprilTag detection, and 6-DoF spatial pose estimation — built on ROS 2 Jazzy, Gazebo Harmonic, and the Nav2 autonomy stack.**
 
-<!-- TODO: Replace with your actual demo recording -->
-<!-- ![Demo: Autonomous navigation with real-time TF2 pose overlay in RViz](docs/demo.gif) -->
+![Demo: Autonomous navigation with real-time TF2 pose overlay in RViz](https://github.com/user-attachments/assets/9f80b6c4-ae4b-4e18-80ff-2921c13c7381) 
 
-<!-- > **Demo placeholder** — Insert a `.gif` or video showing the robot navigating the warehouse, detecting the AprilTag cargo target, and the `cargo_target` TF axis snapping onto the point cloud in RViz. -->
 
 ---
 

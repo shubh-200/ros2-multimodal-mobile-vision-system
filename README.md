@@ -1,9 +1,10 @@
 # ROS 2 Multimodal Spatial Target Locator
 
-**Production-grade autonomous mobile robot simulation with real-time RGB-D sensor fusion, AprilTag detection, and 6-DoF spatial pose estimation — built on ROS 2 Jazzy, Gazebo Harmonic, and the Nav2 autonomy stack.**
+**Autonomous mobile robot simulation with real-time RGB-D sensor fusion, AprilTag detection, and 6-DoF spatial pose estimation - built on ROS 2 Jazzy, Gazebo Harmonic, and the Nav2 autonomy stack.**
 
-![Demo: Autonomous navigation with real-time TF2 pose overlay in RViz](https://github.com/user-attachments/assets/9f80b6c4-ae4b-4e18-80ff-2921c13c7381) 
+Demo: Autonomous navigation with real-time TF2 pose overlay in RViz 
 
+https://github.com/user-attachments/assets/9f80b6c4-ae4b-4e18-80ff-2921c13c7381
 
 ---
 
@@ -19,7 +20,7 @@ The system is decomposed into three isolated microservice layers, each independe
 │  │  KINEMATICS   │   │    NAVIGATION     │    │  SPATIAL VISION  │  │
 │  │               │   │                   │    │                  │  │
 │  │ URDF / Xacro  │   │  Nav2 (A* + DWB)  │    │ target_locator   │  │
-│  │ ros2_control  │──▶│  AMCL Localization│──▶ │ (C++ microservice│  │
+│  │ ros2_control  │──▶│  AMCL Localization│──▶│ (C++ microservice│  │
 │  │ diff_drive    │   │  Static Map Server│    │  message_filters)│  │
 │  │ Gazebo Sim    │   │  twist_stamper    │    │                  │  │
 │  └───────┬───────┘   └─────────┬─────────┘    └────────┬─────────┘  │

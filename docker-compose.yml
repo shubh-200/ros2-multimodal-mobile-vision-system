@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  inspector_bot:
+    build: .
+    container_name: inspector_bot_sim
+    stdin_open: true 
+    tty: true
+    # WSL GUI Environment Passthrough
+    environment:
+      - DISPLAY=${DISPLAY}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - PULSE_SERVER=${PULSE_SERVER}
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      # Mount the X11 and Wayland sockets for WSLg
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /mnt/wslg:/mnt/wslg:ro
+      # Mount your local source code
+      - ./src:/ros2_ws/src
+    # CRITICAL FOR WSL: Pass the GPU into the container
+    devices:
+      - /dev/dri:/dev/dri
+    command: /bin/bash -c "ros2 launch inspector_bot sim_robot.launch.py"

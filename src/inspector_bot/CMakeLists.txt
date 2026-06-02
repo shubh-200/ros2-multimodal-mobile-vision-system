@@ -29,7 +29,7 @@ install(TARGETS inspector_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(
-  DIRECTORY urdf config launch models
+  DIRECTORY urdf config launch models maps rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

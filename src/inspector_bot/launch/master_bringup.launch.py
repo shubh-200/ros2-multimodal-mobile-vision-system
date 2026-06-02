@@ -1,0 +1,68 @@
+import os
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    # --- 1. Define Package Paths ---
+    inspector_pkg = get_package_share_directory('inspector_bot')
+    nav2_pkg = get_package_share_directory('nav2_bringup')
+    
+    # Absolute paths for configuration files
+    map_file = os.path.join(inspector_pkg, 'maps', 'warehouse_map.yaml') # Update with your actual map name if different
+    rviz_config_file = os.path.join(inspector_pkg, 'rviz', 'production.rviz')
+
+    # --- 2. Define the Launch Actions ---
+    
+    # Action A: Boot Gazebo & Spawn Robot (Terminal 1)
+    gazebo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(inspector_pkg, 'launch', 'sim_robot.launch.py'))
+    )
+
+    # Action B: Nav2 Autonomy Brain (Terminal 2)
+    nav2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(nav2_pkg, 'launch', 'bringup_launch.py')),
+        launch_arguments={'use_sim_time': 'true', 'map': map_file}.items()
+    )
+
+    # Action C: Hardware Bridge (Terminal 3)
+    twist_stamper_node = Node(
+        package='twist_stamper',
+        executable='twist_stamper',
+        parameters=[{'use_sim_time': True}],
+        remappings=[
+            ('cmd_vel_in', '/cmd_vel'),
+            ('cmd_vel_out', '/diff_drive_controller/cmd_vel')
+        ]
+    )
+
+    # Action D: The Custom RViz Dashboard (Terminal 4)
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file], # Loads your frozen UI state
+        parameters=[{'use_sim_time': True}]
+    )
+
+    # Action E: 3D Vision Microservice (Terminal 5)
+    vision_node = Node(
+        package='inspector_vision',
+        executable='target_locator',
+        parameters=[{'use_sim_time': True}]
+    )
+
+    # --- 3. The Orchestration (Handling the Race Condition) ---
+    # We must give Gazebo 12 seconds to load the physics engine before booting the rest of the stack.
+    delayed_infrastructure = TimerAction(
+        period=12.0,
+        actions=[nav2_launch, twist_stamper_node, rviz_node, vision_node]
+    )
+
+    # --- 4. Execute ---
+    return LaunchDescription([
+        gazebo_launch,          # Fires immediately
+        delayed_infrastructure  # Fires after 12 seconds
+    ])

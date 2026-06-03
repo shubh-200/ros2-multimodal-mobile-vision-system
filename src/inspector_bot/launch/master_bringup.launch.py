@@ -13,6 +13,7 @@ def generate_launch_description():
     # Absolute paths for configuration files
     map_file = os.path.join(inspector_pkg, 'maps', 'warehouse_map.yaml') # Update with your actual map name if different
     rviz_config_file = os.path.join(inspector_pkg, 'rviz', 'production.rviz')
+    nav2_params_file = os.path.join(inspector_pkg, 'config', 'nav2_params.yaml')
 
     # --- 2. Define the Launch Actions ---
     
@@ -24,7 +25,7 @@ def generate_launch_description():
     # Action B: Nav2 Autonomy Brain (Terminal 2)
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(nav2_pkg, 'launch', 'bringup_launch.py')),
-        launch_arguments={'use_sim_time': 'true', 'map': map_file}.items()
+        launch_arguments={'use_sim_time': 'true', 'map': map_file, 'params_file': nav2_params_file}.items()
     )
 
     # Action C: Hardware Bridge (Terminal 3)

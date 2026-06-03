@@ -21,6 +21,8 @@ find_package(pcl_conversions REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(inspector_interfaces REQUIRED)
 
 add_executable(target_locator src/target_locator.cpp)
 target_include_directories(target_locator PUBLIC
@@ -41,6 +43,8 @@ ament_target_dependencies(
   "message_filters"
   "tf2_ros"
   "tf2_geometry_msgs"
+  "rclcpp_lifecycle"
+  "inspector_interfaces"
 )
 
 install(TARGETS target_locator

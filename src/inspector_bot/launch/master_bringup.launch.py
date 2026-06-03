@@ -3,7 +3,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LifecycleNode
 
 def generate_launch_description():
     # --- 1. Define Package Paths ---
@@ -48,9 +48,11 @@ def generate_launch_description():
     )
 
     # Action E: 3D Vision Microservice (Terminal 5)
-    vision_node = Node(
+    vision_node = LifecycleNode(
         package='inspector_vision',
         executable='target_locator',
+        name='target_locator',
+        namespace='',
         parameters=[{'use_sim_time': True}]
     )
 

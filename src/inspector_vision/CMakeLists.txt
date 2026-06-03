@@ -23,6 +23,8 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(inspector_interfaces REQUIRED)
+find_package(nav2_behavior_tree REQUIRED)
+find_package(behaviortree_cpp REQUIRED)
 
 add_executable(target_locator src/target_locator.cpp)
 target_include_directories(target_locator PUBLIC
@@ -47,8 +49,25 @@ ament_target_dependencies(
   "inspector_interfaces"
 )
 
+# Build the BT Plugin as a Shared Library
+add_library(locate_target_bt_node SHARED src/locate_target_bt_node.cpp)
+ament_target_dependencies(locate_target_bt_node
+  rclcpp
+  rclcpp_action
+  nav2_behavior_tree
+  behaviortree_cpp
+  inspector_interfaces
+)
+
 install(TARGETS target_locator
   DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS
+  locate_target_bt_node
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

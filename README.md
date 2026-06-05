@@ -14,22 +14,22 @@ The system is decomposed into four isolated layers, orchestrated by a single mas
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                         ROS 2  COMPUTE GRAPH                            │
-│                                                                         │
+│                         ROS 2  COMPUTE GRAPH                             │
+│                                                                          │
 │  ┌───────────────┐   ┌───────────────────┐    ┌───────────────────────┐  │
 │  │  KINEMATICS   │   │    NAVIGATION     │    │    SPATIAL VISION     │  │
 │  │               │   │                   │    │   (LifecycleNode)     │  │
 │  │ URDF / Xacro  │   │  Nav2 (A* + DWB)  │    │                       │  │
-│  │ ros2_control  │──▶│  AMCL Localization│──▶│  target_locator        │  │
-│  │ diff_drive    │   │  Custom BT w/     │◀──│  Action Server         │  │
+│  │ ros2_control  │──▶│  AMCL Localization│──▶ │  target_locator       │  │
+│  │ diff_drive    │   │  Custom BT w/     │◀── │  Action Server        │  │
 │  │ Gazebo Sim    │   │  LocateTarget     │    │  (locate_target)      │  │
 │  └───────┬───────┘   └─────────┬─────────┘    └──────────┬────────────┘  │
-│          │                     │                         │              │
-│          ▼                     ▼                         ▼              │
-│     /joint_states         /cmd_vel              /cargo_target           │
-│     /scan                 /map                  (TF2 broadcast)         │
-│     /camera/image         /odom                 LocateTarget.action     │
-│     /camera/points                                                      │
+│          │                     │                         │               │
+│          ▼                     ▼                         ▼               │
+│     /joint_states         /cmd_vel              /cargo_target            │
+│     /scan                 /map                  (TF2 broadcast)          │
+│     /camera/image         /odom                 LocateTarget.action      │
+│     /camera/points                                                       │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 

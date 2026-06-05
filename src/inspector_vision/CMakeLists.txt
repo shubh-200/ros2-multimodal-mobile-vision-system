@@ -25,6 +25,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(inspector_interfaces REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
+find_package(pluginlib REQUIRED)
 
 add_executable(target_locator src/target_locator.cpp)
 target_include_directories(target_locator PUBLIC
@@ -49,18 +50,19 @@ ament_target_dependencies(
   "inspector_interfaces"
 )
 
+install(TARGETS target_locator
+  DESTINATION lib/${PROJECT_NAME})
+
 # Build the BT Plugin as a Shared Library
 add_library(locate_target_bt_node SHARED src/locate_target_bt_node.cpp)
 ament_target_dependencies(locate_target_bt_node
-  rclcpp
-  rclcpp_action
-  nav2_behavior_tree
-  behaviortree_cpp
-  inspector_interfaces
+  "rclcpp"
+  "rclcpp_action"
+  "nav2_behavior_tree"
+  "behaviortree_cpp"
+  "inspector_interfaces"
+  "pluginlib"
 )
-
-install(TARGETS target_locator
-  DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS
   locate_target_bt_node
@@ -68,6 +70,8 @@ install(TARGETS
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+pluginlib_export_plugin_description_file(nav2_behavior_tree plugins.xml)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -80,5 +84,5 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-
+ament_export_libraries(locate_target_bt_node)
 ament_package()

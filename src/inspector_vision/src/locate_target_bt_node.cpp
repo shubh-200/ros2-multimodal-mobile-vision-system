@@ -4,6 +4,8 @@
 #include "nav2_behavior_tree/bt_action_node.hpp"
 #include "inspector_interfaces/action/locate_target.hpp"
 #include "behaviortree_cpp/bt_factory.h"
+// #include "pluginlib/class_list_macros.hpp"
+// #include "nav2_behavior_tree/bt_plugin.hpp"
 
 namespace inspector_bt_plugins
 {
@@ -12,10 +14,7 @@ class LocateTargetAction : public nav2_behavior_tree::BtActionNode<inspector_int
 {
 public:
     // Constructor
-    LocateTargetAction(
-        const std::string & xml_tag_name,
-        const std::string & action_name,
-        const BT::NodeConfig & conf)
+    LocateTargetAction(const std::string & xml_tag_name, const std::string & action_name, const BT::NodeConfig & conf)
     : BtActionNode<inspector_interfaces::action::LocateTarget>(xml_tag_name, action_name, conf)
     {
     }
@@ -55,13 +54,16 @@ public:
 // ==========================================================
 BT_REGISTER_NODES(factory)
 {
+    // The explicit lambda builder bypasses dummy instantiation crashes
     BT::NodeBuilder builder =
         [](const std::string & name, const BT::NodeConfig & config)
     {
         return std::make_unique<inspector_bt_plugins::LocateTargetAction>(
-            name, "locate_target", config); // "locate_target" is the ROS 2 action name
+            name, "locate_target", config);
     };
 
     factory.registerBuilder<inspector_bt_plugins::LocateTargetAction>(
-        "LocateTarget", builder); // "LocateTarget" is the XML tag name
+        "LocateTarget", builder);
 }
+// PLUGINLIB_EXPORT_CLASS(inspector_bt_plugins::LocateTargetAction, nav2_behavior_tree::BtActionNode<inspector_interfaces::action::LocateTarget>)
+// NAV2_DYNAMIC_PLUGIN(inspector_bt_plugins::LocateTargetAction)

@@ -91,15 +91,12 @@ The `LocateTargetAction` BT plugin (`locate_target_bt_node.cpp`) is compiled as 
 
 ### Robust Systems Engineering
 
-
 | Challenge | Root Cause | Resolution |
 |---|---|---|
-| **Silent frame dropping** | Gazebo sensors publish with `BEST_EFFORT` QoS; the C++ node defaulted to `RELIABLE`, causing DDS incompatibility | Explicitly configured `rmw_qos_profile_sensor_data` on all `message_filters` subscribers |
-| **AprilTag detection failures** | Simulated environment lighting washes out contrast; default OpenCV thresholds rejected valid geometry | Upgraded sensor model to 720p, converted streams to grayscale, tuned `minDistanceToBorder=0` and `minMarkerDistanceRate=0.01` |
-| **AMCL initialization deadlock** | Global costmap crashes when `/map` frame is absent until an initial pose is published | Diagnosed the initialization ordering dependency and resolved the AMCL ↔ `map_server` startup race |
-| **Launch race conditions** | Gazebo physics engine requires seconds to initialize; ROS 2 nodes launch in milliseconds, causing crashes on entity spawn | Implemented `TimerAction` with a 12-second delay in the master bringup to defer infrastructure boot until the physics engine is fully available |
-| **Lifecycle subscriber management** | Keeping `message_filters` subscribers active during idle periods wastes DDS bandwidth and creates unnecessary network load | Vision node connects sensors only in `on_activate`, destroys pointers in `on_deactivate` — zero sensor bandwidth when inactive |
-| **CMake library collisions** | Anaconda Python environments inject conflicting `libpng` / `Qt5` libraries into the linker search path during `colcon build` | Isolated system library paths and resolved CMake `find_package` precedence conflicts |
+| **BT Node "Not Recognized"** | In BehaviorTree.CPP 4.5+ (ROS 2 Jazzy), the `BT_REGISTER_NODES` macro compiled the plugin registration function without proper `extern "C"` linkage, name-mangling the symbol and preventing dynamic loading via `dlsym`. | Replaced the macro with manual C-linkage export: `extern "C" __attribute__((visibility("default"))) void BT_RegisterNodesFromPlugin(...)`. |
+| **Action Server Timeout** | `bt_navigator` requires all action servers to be active during Behavior Tree initialization. The `target_locator` LifecycleNode was launched but left unconfigured. | Added a dedicated `lifecycle_manager` (`bond_timeout=0.0`) and split the bringup into sequential stages (vision at 12s, navigation at 15s). |
+| **Silent Frame Dropping** | Gazebo sensors publish using `BEST_EFFORT` QoS, whereas the C++ node subscribers defaulted to `RELIABLE`, resulting in DDS profile incompatibility. | Configured `rmw_qos_profile_sensor_data` explicitly on all `message_filters` subscribers. |
+| **AprilTag Detection Failure** | Simulated lighting washed out contrast; default OpenCV parameters rejected valid tag corner geometry. | Upgraded camera to 720p, converted image streams to grayscale, and tuned `minDistanceToBorder=0` and `minMarkerDistanceRate=0.01`. |
 
 ---
 
@@ -193,25 +190,25 @@ source install/setup.bash
 
 ### Launch (Single Command)
 
-The entire system boots from a single master launch file. Internally, a `TimerAction` enforces a 12-second delay between Gazebo physics initialization and the rest of the stack:
+The entire system boots from a single master launch file. Internally, `TimerAction` sequences enforce timing delays between Gazebo physics initialization, the vision microservice, and the navigation stack to prevent race conditions:
 
 ```bash
 ros2 launch inspector_bot master_bringup.launch.py
 ```
 
-This single command orchestrates all five subsystems that previously required separate terminals:
+This single command orchestrates the subsystems across timed stages:
 
-| Subsystem | What it launches |
-|---|---|
-| **Gazebo Simulation** | `sim_robot.launch.py` — physics engine, robot spawn, sensor bridge (fires immediately) |
-| **Nav2 Autonomy** | `bringup_launch.py` — A\* planner, DWB controller, AMCL, map server (fires after 12s delay) |
-| **Twist Stamper** | Bridge node remapping `/cmd_vel` → `/diff_drive_controller/cmd_vel` (fires after 12s delay) |
-| **RViz Dashboard** | Loads the frozen `production.rviz` configuration (fires after 12s delay) |
-| **Vision Microservice** | `LifecycleNode` — boots in `unconfigured` state, ready for lifecycle transitions (fires after 12s delay) |
+| Subsystem / Node | Launch Timing | Description |
+|---|---|---|
+| **Gazebo Simulation** | Immediately (0.0s) | Launches `sim_robot.launch.py` (physics engine, robot spawn, camera sensor bridge). |
+| **Vision Microservice** | 12.0s Delay | Spawns `target_locator` and `lifecycle_manager_vision` to automatically configure & activate the vision server. |
+| **Nav2 Autonomy** | 15.0s Delay | Spawns `bringup_launch.py` (planners, controllers, AMCL localization, custom Behavior Tree). |
+| **Twist Stamper** | 15.0s Delay | Bridge node remapping `/cmd_vel` to `/diff_drive_controller/cmd_vel` with timestamp header. |
+| **RViz Dashboard** | 15.0s Delay | Launches RViz configured with the warehouse layout and camera/pointcloud/TF visualization overlays. |
 
-> **Tip:** Set an initial pose estimate in RViz (`2D Pose Estimate`) before sending navigation goals to resolve the AMCL localization prior. Then use `2D Goal Pose` to command the robot toward the cargo target.
+> **Tip:** Set an initial pose estimate in RViz (`2D Pose Estimate`) before sending navigation goals to initialize the AMCL particle filter. Then use `2D Goal Pose` to command the robot toward the cargo target.
 
-> **Note:** The vision node launches as a `LifecycleNode`. It must be transitioned through `configure` → `activate` before the action server accepts goals. Nav2's Behavior Tree handles this automatically when using the custom nav tree.
+> **Note:** The vision node is configured as a `LifecycleNode`. A dedicated lifecycle manager (`lifecycle_manager_vision`) transitions the node to the `active` state at the 12-second mark, ensuring the `/locate_target` action server is fully available before Nav2 boots at the 15-second mark.
 
 ---
 
@@ -231,7 +228,6 @@ ros2_control  ·  cv_bridge  ·  colcon / CMake  ·  AMCL  ·  SLAM Toolbox
 - **Docker Containerization** : Package the full simulation stack into a multi-stage Docker image with GPU passthrough for reproducible, single-command deployment.
 - **MoveIt 2 Integration** : Extend the pipeline with a 6-axis manipulator arm consuming the `cargo_target` TF frame for autonomous pick-and-place operations.
 - **Multi-Tag Tracking** : Generalize the vision node to track an array of AprilTag IDs simultaneously, broadcasting unique TF frames per target.
-- **Lifecycle Manager Integration** : Wire the vision node into Nav2's `lifecycle_manager` for fully automated `configure` → `activate` transitions at system boot.
 - **Depth Filtering & Outlier Rejection** : Integrate PCL statistical outlier removal and voxel downsampling for robust spatial extraction in noisy real-world sensor data.
 - **CI/CD Pipeline** : Add `colcon test` with `ament_lint_auto` and integration tests via `launch_testing` for continuous validation.
 

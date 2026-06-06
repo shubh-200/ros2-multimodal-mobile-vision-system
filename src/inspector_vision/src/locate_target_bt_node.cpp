@@ -51,16 +51,15 @@ public:
 }  // namespace inspector_bt_plugins
 
 // ==========================================================
-// Plugin Registration Macro (Allows Nav2 to load this at runtime)
+// Plugin Registration — explicit extern "C" to guarantee dlsym visibility.
+// The BT_REGISTER_NODES macro in BT.CPP 4.5.x does NOT produce a
+// dynamic symbol on this toolchain, so we define it manually.
 // ==========================================================
-BT_REGISTER_NODES(factory)
+extern "C" __attribute__((visibility("default")))
+void BT_RegisterNodesFromPlugin(BT::BehaviorTreeFactory& factory)
 {
-    // ===== DIAGNOSTIC: Remove after confirming registration works =====
-    fprintf(stderr, "\n\n========================================\n");
-    fprintf(stderr, ">>> BT_REGISTER_NODES: LocateTarget plugin LOADING <<<\n");
-    fprintf(stderr, "========================================\n\n");
+    fprintf(stderr, "\n>>> BT_RegisterNodesFromPlugin: LocateTarget LOADING <<<\n");
 
-    // The explicit lambda builder bypasses dummy instantiation crashes
     BT::NodeBuilder builder =
         [](const std::string & name, const BT::NodeConfig & config)
     {
@@ -71,7 +70,7 @@ BT_REGISTER_NODES(factory)
     factory.registerBuilder<inspector_bt_plugins::LocateTargetAction>(
         "LocateTarget", builder);
 
-    fprintf(stderr, "\n>>> BT_REGISTER_NODES: LocateTarget REGISTERED SUCCESSFULLY <<<\n\n");
+    fprintf(stderr, ">>> BT_RegisterNodesFromPlugin: LocateTarget REGISTERED <<<\n\n");
 }
 // PLUGINLIB_EXPORT_CLASS(inspector_bt_plugins::LocateTargetAction, nav2_behavior_tree::BtActionNode<inspector_interfaces::action::LocateTarget>)
 // NAV2_DYNAMIC_PLUGIN(inspector_bt_plugins::LocateTargetAction)

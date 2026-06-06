@@ -57,15 +57,36 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
+    # Action F: Vision Lifecycle Manager
+    vision_lifecycle_manager = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_vision',
+        output='screen',
+        parameters=[
+            {'use_sim_time': True},
+            {'autostart': True},
+            {'node_names': ['target_locator']},
+            {'bond_timeout': 0.0}
+        ]
+    )
+
     # --- 3. The Orchestration (Handling the Race Condition) ---
-    # We must give Gazebo 12 seconds to load the physics engine before booting the rest of the stack.
-    delayed_infrastructure = TimerAction(
+    # We must give Gazebo 12 seconds to load the physics engine before booting the vision microservice,
+    # and then another 3 seconds for the vision node to configure & activate before booting navigation.
+    delayed_vision = TimerAction(
         period=12.0,
-        actions=[nav2_launch, twist_stamper_node, rviz_node, vision_node]
+        actions=[vision_node, vision_lifecycle_manager]
+    )
+
+    delayed_navigation = TimerAction(
+        period=15.0,
+        actions=[nav2_launch, twist_stamper_node, rviz_node]
     )
 
     # --- 4. Execute ---
     return LaunchDescription([
         gazebo_launch,          # Fires immediately
-        delayed_infrastructure  # Fires after 12 seconds
+        delayed_vision,         # Fires after 12 seconds
+        delayed_navigation      # Fires after 15 seconds
     ])

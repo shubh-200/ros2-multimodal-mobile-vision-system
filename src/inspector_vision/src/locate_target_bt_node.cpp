@@ -1,5 +1,6 @@
 #include <string>
 #include <memory>
+#include <cstdio>
 
 #include "nav2_behavior_tree/bt_action_node.hpp"
 #include "inspector_interfaces/action/locate_target.hpp"
@@ -54,6 +55,11 @@ public:
 // ==========================================================
 BT_REGISTER_NODES(factory)
 {
+    // ===== DIAGNOSTIC: Remove after confirming registration works =====
+    fprintf(stderr, "\n\n========================================\n");
+    fprintf(stderr, ">>> BT_REGISTER_NODES: LocateTarget plugin LOADING <<<\n");
+    fprintf(stderr, "========================================\n\n");
+
     // The explicit lambda builder bypasses dummy instantiation crashes
     BT::NodeBuilder builder =
         [](const std::string & name, const BT::NodeConfig & config)
@@ -64,6 +70,8 @@ BT_REGISTER_NODES(factory)
 
     factory.registerBuilder<inspector_bt_plugins::LocateTargetAction>(
         "LocateTarget", builder);
+
+    fprintf(stderr, "\n>>> BT_REGISTER_NODES: LocateTarget REGISTERED SUCCESSFULLY <<<\n\n");
 }
 // PLUGINLIB_EXPORT_CLASS(inspector_bt_plugins::LocateTargetAction, nav2_behavior_tree::BtActionNode<inspector_interfaces::action::LocateTarget>)
 // NAV2_DYNAMIC_PLUGIN(inspector_bt_plugins::LocateTargetAction)

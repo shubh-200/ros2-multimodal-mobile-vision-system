@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
 
-# Source the ROS 2 core
+# Source the ROS 2 installation
 source /opt/ros/jazzy/setup.bash
 
 # Source the custom workspace
-source /ros2_ws/install/setup.bash
+if [ -f /ros2_ws/install/setup.bash ]; then
+    source /ros2_ws/install/setup.bash
+fi
 
-# Execute the command passed into the docker run/compose command
+# Execute the command passed to the docker container
 exec "$@"

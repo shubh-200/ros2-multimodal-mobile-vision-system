@@ -1,6 +1,6 @@
 # ROS 2 Multimodal Spatial Target Locator
 
-**Autonomous mobile robot simulation with lifecycle-managed RGB-D sensor fusion, AprilTag detection, and 6-DoF spatial pose estimation — orchestrated through a Nav2 Behavior Tree action interface, built on ROS 2 Jazzy, Gazebo Harmonic, and the Nav2 autonomy stack.**
+**Autonomous mobile robot simulation with lifecycle-managed RGB-D sensor fusion, AprilTag detection, and 6-DoF spatial pose estimation, orchestrated through a Nav2 Behavior Tree action interface, built on ROS 2 Jazzy, Gazebo Harmonic, and the Nav2 autonomy stack.**
 
 Demo: Autonomous navigation with real-time TF2 pose overlay in RViz 
 
@@ -20,8 +20,8 @@ The system is decomposed into four isolated layers, orchestrated by a single mas
 │  │  KINEMATICS   │   │    NAVIGATION     │    │    SPATIAL VISION     │  │
 │  │               │   │                   │    │   (LifecycleNode)     │  │
 │  │ URDF / Xacro  │   │  Nav2 (A* + DWB)  │    │                       │  │
-│  │ ros2_control  │──▶│  AMCL Localization│──▶ │  target_locator       │  │
-│  │ diff_drive    │   │  Custom BT w/     │◀── │  Action Server        │  │
+│  │ ros2_control  │──▶│  AMCL Localization│──▶│  target_locator       │  │
+│  │ diff_drive    │   │  Custom BT w/     │◀──│  Action Server        │  │
 │  │ Gazebo Sim    │   │  LocateTarget     │    │  (locate_target)      │  │
 │  └───────┬───────┘   └─────────┬─────────┘    └──────────┬────────────┘  │
 │          │                     │                         │               │
@@ -55,13 +55,13 @@ The system is decomposed into four isolated layers, orchestrated by a single mas
 - Custom `twist_stamper` bridging node to resolve strict `geometry_msgs/TwistStamped` vs. `Twist` type mismatches between Nav2 outputs and the `diff_drive_controller`.
 
 ### Lifecycle-Managed Vision with Action Server Interface
-The `target_locator` node is the core of this system — a `rclcpp_lifecycle::LifecycleNode` that exposes a `LocateTarget` action server, enabling Nav2's Behavior Tree to orchestrate the vision pipeline on-demand:
+The `target_locator` node is the core of this system; a `rclcpp_lifecycle::LifecycleNode` that exposes a `LocateTarget` action server, enabling Nav2's Behavior Tree to orchestrate the vision pipeline on-demand:
 
 **Lifecycle State Machine:**
-- **`on_configure`** — Allocates the action server and TF broadcaster without connecting to any sensor streams (zero bandwidth cost while idle).
-- **`on_activate`** — Connects to `message_filters` RGB-D subscribers and binds the `ApproximateTime` synchronizer (sensor data starts flowing only when needed).
-- **`on_deactivate`** — Destroys synchronizer and subscriber pointers, immediately severing the DDS network connections to reclaim bandwidth.
-- **`on_cleanup`** — Tears down the action server and TF broadcaster.
+- **`on_configure`** : Allocates the action server and TF broadcaster without connecting to any sensor streams (zero bandwidth cost while idle).
+- **`on_activate`** : Connects to `message_filters` RGB-D subscribers and binds the `ApproximateTime` synchronizer (sensor data starts flowing only when needed).
+- **`on_deactivate`** : Destroys synchronizer and subscriber pointers, immediately severing the DDS network connections to reclaim bandwidth.
+- **`on_cleanup`** : Tears down the action server and TF broadcaster.
 
 **Action Server Contract** (`LocateTarget.action`):
 ```

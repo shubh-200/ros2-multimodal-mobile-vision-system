@@ -25,8 +25,12 @@ COPY ./src /ros2_ws/src
 
 # 3. Resolve ROS dependencies
 # Initialize rosdep if not already done by the base image
-RUN sudo rosdep init || true
-RUN rosdep update && rosdep install -y --from-paths src --ignore-src --rosdistro jazzy
+RUN rosdep init || true
+RUN rosdep update && rosdep install -y \
+    --from-paths src \
+    --ignore-src \
+    --rosdistro jazzy \
+    --skip-keys "inspector_bot inspector_vision inspector_interfaces"
 
 # 4. Build the Workspace (Ensuring the custom BT plugin and Lifecycle nodes compile)
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \

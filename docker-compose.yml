@@ -18,4 +18,4 @@ services:
       # Optional: Mount your source code directly for live-editing Python launch files without rebuilding the container
       - ./src:/ros2_ws/src:rw
     # Launch the entire orchestrator immediately upon boot
-    command: ros2 launch inspector_bot production_demo.launch.py
+    command: ros2 launch inspector_bot master_bringup.launch.py

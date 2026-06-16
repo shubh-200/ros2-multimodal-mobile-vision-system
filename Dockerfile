@@ -17,6 +17,15 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-behaviortree-cpp \
     ros-jazzy-message-filters \
     ros-jazzy-tf2-ros \
+    ros-jazzy-ros2-control \
+    ros-jazzy-ros2-controllers \
+    ros-jazzy-gz-ros2-control \
+    ros-jazzy-ros-gz-sim \
+    ros-jazzy-ros-gz-bridge \
+    ros-jazzy-twist-stamper \
+    ros-jazzy-xacro \
+    ros-jazzy-robot-state-publisher \
+    ros-jazzy-joint-state-publisher \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Setup the Workspace

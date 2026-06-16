@@ -1,4 +1,4 @@
-image: /home/shubham/ros2_ws/src/inspector_bot/maps/warehouse_map.pgm
+image: warehouse_map.pgm
 mode: trinary
 resolution: 0.050
 origin: [-15.110, -26.968, 0]

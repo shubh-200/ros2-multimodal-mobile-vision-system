@@ -104,6 +104,10 @@ The `LocateTargetAction` BT plugin (`locate_target_bt_node.cpp`) is compiled as 
 
 ```
 ros2-multimodal-mobile-vision-system/
+├── Dockerfile                      # Multi-stage build (builder + runtime)
+├── docker-compose.yml              # Compose with sim / hardware profiles
+├── entrypoint.sh                   # Container entrypoint (sources ROS + workspace)
+│
 ├── inspector_bot/                  # Core robot package
 │   ├── urdf/
 │   │   └── inspector_bot.urdf.xacro   # Parametric robot model (mass, inertia, sensors)
@@ -143,7 +147,33 @@ ros2-multimodal-mobile-vision-system/
 
 ## Build & Run
 
-### Prerequisites
+### Option A — Docker (Recommended)
+
+The full simulation stack is containerized. No local ROS 2 installation required.
+
+**Prerequisites:** Docker Desktop with the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for GPU-accelerated Gazebo rendering.
+
+```bash
+# Clone the repository
+git clone https://github.com/shubh-200/ros2-multimodal-mobile-vision-system.git
+cd ros2-multimodal-mobile-vision-system
+
+# Build the image (first build takes ~10 minutes)
+docker compose build
+
+# Launch the full stack (Gazebo + Nav2 + Vision + RViz)
+docker compose up
+```
+
+The container automatically sources the ROS 2 environment and workspace, then launches `master_bringup.launch.py`.
+
+> **Note:** On Linux, run `xhost +local:docker` before `docker compose up` to allow the container to render Gazebo and RViz on your host display.
+
+---
+
+### Option B — Native Build
+
+#### Prerequisites
 
 | Dependency | Version |
 |---|---|
@@ -155,7 +185,7 @@ ros2-multimodal-mobile-vision-system/
 | Nav2 | Jazzy release |
 | BehaviorTree.CPP | 4.x |
 
-### Install Dependencies
+#### Install Dependencies
 
 ```bash
 sudo apt update && sudo apt install -y \
@@ -175,7 +205,7 @@ sudo apt update && sudo apt install -y \
   ros-jazzy-behaviortree-cpp
 ```
 
-### Build
+#### Build
 
 ```bash
 # Clone the repository into your colcon workspace
@@ -188,7 +218,7 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-### Launch (Single Command)
+#### Launch (Single Command)
 
 The entire system boots from a single master launch file. Internally, `TimerAction` sequences enforce timing delays between Gazebo physics initialization, the vision microservice, and the navigation stack to prevent race conditions:
 
@@ -219,17 +249,28 @@ ROS 2 Jazzy  ·  Gazebo Harmonic  ·  C++17  ·  Python 3  ·  Nav2
 OpenCV (ArUco / AprilTag 36h11)  ·  PCL  ·  tf2_ros  ·  message_filters
 rclcpp_lifecycle  ·  rclcpp_action  ·  BehaviorTree.CPP v4  ·  nav2_behavior_tree
 ros2_control  ·  cv_bridge  ·  colcon / CMake  ·  AMCL  ·  SLAM Toolbox
+Docker  ·  Docker Compose
 ```
 
 ---
 
 ## Future Scope
 
-- **Docker Containerization** : Package the full simulation stack into a multi-stage Docker image with GPU passthrough for reproducible, single-command deployment.
+### ✅ Completed
+- **Docker Containerization** : Full simulation stack packaged into a Docker image with GPU passthrough via NVIDIA Container Toolkit. Single-command bringup with `docker compose up`. Includes a correct `rosdep` skip-keys configuration and portable relative map paths.
+
+### 🔲 Planned — Production Readiness
+- **Multi-Stage Docker Build** : Separate builder and runtime stages to eliminate compilers and dev headers from the deployed image, reducing size by ~60%.
+- **Compose Profiles (Sim / Hardware)** : Split `docker-compose.yml` into `--profile sim` and `--profile hardware` targets, with the hardware profile mounting `/dev/ttyUSB0` and `/dev/ttyACM0` for the real robot.
+- **GitHub Actions CI/CD Pipeline** : Automated `colcon build` + `colcon test` gate inside a ROS 2 Jazzy container on every push/PR. Successful `main` merges trigger a Docker image build and push to GitHub Container Registry (`ghcr.io`), tagged with both `:latest` and `:<git-sha>` for rollback.
+- **Foxglove Integration** : Add `foxglove_bridge` as a ROS 2 node to expose all topics over WebSocket (port `8765`), enabling browser-based monitoring via `app.foxglove.dev` without X11. Version-control the dashboard layout JSON for a shared, reproducible panel configuration covering `/scan`, `/camera/image`, `/camera/points`, `/plan`, and `/odom`.
+- **MCAP Mission Recording** : Switch from SQLite `ros2bag` to MCAP format for post-mission replay. A dedicated Docker Compose recorder service captures all sensor and navigation topics per mission, enabling frame-by-frame scrubbing in Foxglove Studio.
+- **`colcon test` Integration Tests** : Add `ament_cmake_gtest` unit tests for the BT node and `launch_testing` integration tests for node startup validation. MCAP fixtures from CI runs are uploaded as GitHub Actions artifacts on failure for visual debugging.
+
+### 🔲 Planned — Capabilities
 - **MoveIt 2 Integration** : Extend the pipeline with a 6-axis manipulator arm consuming the `cargo_target` TF frame for autonomous pick-and-place operations.
 - **Multi-Tag Tracking** : Generalize the vision node to track an array of AprilTag IDs simultaneously, broadcasting unique TF frames per target.
 - **Depth Filtering & Outlier Rejection** : Integrate PCL statistical outlier removal and voxel downsampling for robust spatial extraction in noisy real-world sensor data.
-- **CI/CD Pipeline** : Add `colcon test` with `ament_lint_auto` and integration tests via `launch_testing` for continuous validation.
 
 ---
 
